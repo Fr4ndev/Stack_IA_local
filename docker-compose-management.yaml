@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - "127.0.0.1:9000:9000" # Restringe a localhost para mayor seguridad
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    environment:
+      - TZ=Europe/Madrid # Ajusta a tu zona horaria
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5' # Limita uso de CPU
+          memory: 512M # Limita uso de memoria
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true # Elimina imágenes antiguas
+      - WATCHTOWER_SCHEDULE=0 0 4 * * * # Actualiza diariamente a las 4 AM
+      - WATCHTOWER_NOTIFICATIONS=slack # Ejemplo: notificaciones a Slack
+      - WATCHTOWER_NOTIFICATION_SLACK_HOOK_URL=https://hooks.slack.com/services/xxx/yyy/zzz # Opcional: configura tu webhook
+      - WATCHTOWER_NOTIFICATION_SLACK_IDENTIFIER=watchtower-server # Identificador único
+      - WATCHTOWER_INCLUDE_STOPPED=false # No actualiza contenedores detenidos
+      - WATCHTOWER_IGNORE_CONTAINERS=portainer # Evita actualizar Portainer
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/status"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  portainer_data:
+
+networks:
+  app-network:
+    driver: bridge

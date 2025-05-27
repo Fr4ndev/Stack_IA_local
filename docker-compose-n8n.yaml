@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - N8N_HOST=n8n
+      - N8N_PORT=5678
+      - LITELLM_API_BASE=http://litellm:4000
+      - LITELLM_API_KEY=sk-1234
+    depends_on:
+      - litellm
+    networks:
+      - app-network
+
+volumes:
+  n8n_data:
+
+networks:
+  app-network:
+    driver: bridge
