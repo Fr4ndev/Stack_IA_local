@@ -1,0 +1,7 @@
+model_list:
+  - model_name: llama3
+    litellm_params:
+      model: ollama/llama3
+      api_base: http://host.docker.internal:11434
+general_settings:
+  database_url: postgresql://user:password@postgres:5432/litellm_db
